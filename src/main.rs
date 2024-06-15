@@ -72,10 +72,10 @@ impl CPU {
             Memory: [0; 0xffff],
         }
     }
-    fn mem_read(&self, address: u16) -> u8 {
+    fn read_mem(&self, address: u16) -> u8 {
         self.Memory[address as usize]
     }
-    fn mem_write(&mut self, address: u16, data: u8) {
+    fn write_mem(&mut self, address: u16, data: u8) {
         self.Memory[address as usize] = data;
     }
     pub fn load_and_run(&mut self, program: Vec<u8>) {
@@ -88,12 +88,12 @@ impl CPU {
     }
     pub fn run(&mut self) {
         loop {
-            let opcode = self.mem_read(self.ProgramCounter);
+            let opcode = self.read_mem(self.ProgramCounter);
             self.ProgramCounter += 1;
 
             match opcode {
                 0xA9 => {
-                    let param = self.mem_read(self.ProgramCounter);
+                    let param = self.read_mem(self.ProgramCounter);
                     self.ProgramCounter += 1;
                     self.lda(param);
                 }
