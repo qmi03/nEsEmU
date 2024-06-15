@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
+
 pub struct CPU {
     RegisterA: u8,
     RegisterX: u8,
@@ -15,7 +16,32 @@ pub struct CPU {
     FlagZ: bool,
 }
 impl CPU {
-    // add code here
+    pub fn new() -> Self {
+        CPU {
+            RegisterA: 0,
+            RegisterX: 0,
+            RegisterY: 0,
+            StackPointer: 0,
+            ProgramCounter: 0,
+            FlagB: false,
+            FlagC: false,
+            FlagD: false,
+            FlagI: false,
+            FlagN: false,
+            FlagV: false,
+            FlagZ: false,
+        }
+    }
+    pub fn interpret(&mut self, program: Vec<u8>) {
+        loop {
+            let opcode = program[self.ProgramCounter as usize];
+            self.ProgramCounter += 1;
+
+            match opcode {
+                _ => todo!()
+            }
+        }
+    }
 }
 fn main() {
     println!("Hello, world!");
