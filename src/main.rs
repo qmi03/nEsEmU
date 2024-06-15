@@ -77,6 +77,14 @@ impl CPU {
             self.ProgramCounter += 1;
 
             match opcode {
+                0xA9 => {
+                    let param = program[self.ProgramCounter as usize];
+                    self.ProgramCounter += 1;
+                    self.RegisterA = param;
+
+                    self.Flag.Zero = self.RegisterA == 0;
+                    self.Flag.Negative = self.RegisterA & 0b1000_0000 != 0
+                }
                 _ => todo!(),
             }
         }
