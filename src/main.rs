@@ -70,6 +70,18 @@ impl CPU {
             Flag: Flag::from(0),
         }
     }
+    fn lda(&mut self, value: u8) {
+        self.RegisterA = value;
+        self.update_zero_and_negative_flag(self.RegisterA);
+    }
+    fn tax(&mut self) {
+        self.RegisterX = self.RegisterA;
+        self.update_zero_and_negative_flag(self.RegisterX);
+    }
+    fn update_zero_and_negative_flag(&mut self, result: u8) {
+        self.Flag.Zero = result == 0;
+        self.Flag.Negative = result & 0b1000_0000 != 0
+    }
 
     pub fn interpret(&mut self, program: Vec<u8>) {
         loop {
@@ -80,19 +92,10 @@ impl CPU {
                 0xA9 => {
                     let param = program[self.ProgramCounter as usize];
                     self.ProgramCounter += 1;
-                    self.RegisterA = param;
-
-                    self.Flag.Zero = self.RegisterA == 0;
-                    self.Flag.Negative = self.RegisterA & 0b1000_0000 != 0
+                    self.lda(param);
                 }
-                0xAA => {
-                    self.RegisterX = self.RegisterA;
-                    self.Flag.Zero = self.RegisterX == 0;
-                    self.Flag.Negative = self.RegisterX & 0b1000_0000 != 0
-                }
-                0x00 => {
-                    return;
-                }
+                0xAA => self.tax(),
+                0x00 => return,
                 _ => todo!(),
             }
         }
