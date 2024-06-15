@@ -53,6 +53,17 @@ pub struct Flag {
     Overflow: bool,
     Zero: bool,
 }
+impl Flag {
+    pub fn reset(&mut self) {
+        self.BreakCommand = false;
+        self.Carry = false;
+        self.DecimalMode = false;
+        self.Interrupt = false;
+        self.Negative = false;
+        self.Overflow = false;
+        self.Zero = false;
+    }
+}
 pub struct CPU {
     RegisterA: u8,
     RegisterX: u8,
@@ -74,6 +85,13 @@ impl CPU {
             Memory: [0; 0xffff],
         }
     }
+    pub fn reset(&mut self) {
+        self.RegisterA = 0;
+        self.RegisterX = 0;
+        self.RegisterY = 0;
+        self.Flag.reset();
+        self.ProgramCounter = self.read_mem_16(0xFFFC);
+    }
     fn read_mem(&self, address: u16) -> u8 {
         self.Memory[address as usize]
     }
@@ -93,13 +111,14 @@ impl CPU {
     }
     pub fn load_and_run(&mut self, program: Vec<u8>) {
         self.load(program);
+        self.reset();
         self.run();
     }
-    pub fn load(&mut self, program: Vec<u8>) {
+    fn load(&mut self, program: Vec<u8>) {
         self.Memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
-        self.ProgramCounter = 0x8000;
+        self.write_mem_16(0xFFFC, 0x8000);
     }
-    pub fn run(&mut self) {
+    fn run(&mut self) {
         loop {
             let opcode = self.read_mem(self.ProgramCounter);
             self.ProgramCounter += 1;
@@ -162,7 +181,7 @@ mod test {
     #[test]
     fn test_0xa9_lda_immediate_load_data() {
         let mut cpu = CPU::new();
-        cpu.interpret(vec![0xa9, 0x05, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0x05, 0x00]);
         assert_eq!(cpu.RegisterA, 0x05);
         assert!(cpu.Flag.Zero == false);
         assert!(cpu.Flag.Negative == false);
@@ -171,21 +190,21 @@ mod test {
     #[test]
     fn test_0xa9_lda_zero_flag() {
         let mut cpu = CPU::new();
-        cpu.interpret(vec![0xa9, 0x00, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0x00, 0x00]);
         assert!(cpu.Flag.Zero == true);
     }
 
     #[test]
     fn test_0xa9_lda_negative_flag() {
         let mut cpu = CPU::new();
-        cpu.interpret(vec![0xa9, 0xf1, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xf1, 0x00]);
         assert!(cpu.Flag.Negative == true);
     }
     #[test]
     fn test_0xaa_tax_move_a_to_x() {
         let mut cpu = CPU::new();
         cpu.RegisterA = 10;
-        cpu.interpret(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xaa, 0x00]);
 
         assert_eq!(cpu.RegisterX, 10)
     }
@@ -193,7 +212,7 @@ mod test {
     fn test_0xaa_tax_move_a_to_x_zero_flag() {
         let mut cpu = CPU::new();
         cpu.RegisterA = 0;
-        cpu.interpret(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xaa, 0x00]);
 
         assert_eq!(cpu.Flag.Zero, true)
     }
@@ -201,14 +220,14 @@ mod test {
     fn test_0xaa_tax_move_a_to_x_negative_flag() {
         let mut cpu = CPU::new();
         cpu.RegisterA = 0xf1;
-        cpu.interpret(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xaa, 0x00]);
 
         assert_eq!(cpu.Flag.Negative, true)
     }
     #[test]
     fn test_5_ops_working_together() {
         let mut cpu = CPU::new();
-        cpu.interpret(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
+        cpu.load_and_run(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
 
         assert_eq!(cpu.RegisterX, 0xc1)
     }
@@ -217,7 +236,7 @@ mod test {
     fn test_inx_overflow() {
         let mut cpu = CPU::new();
         cpu.RegisterX = 0xff;
-        cpu.interpret(vec![0xe8, 0xe8, 0x00]);
+        cpu.load_and_run(vec![0xe8, 0xe8, 0x00]);
 
         assert_eq!(cpu.RegisterX, 1)
     }
