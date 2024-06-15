@@ -85,6 +85,11 @@ impl CPU {
                     self.Flag.Zero = self.RegisterA == 0;
                     self.Flag.Negative = self.RegisterA & 0b1000_0000 != 0
                 }
+                0xAA => {
+                    self.RegisterX = self.RegisterA;
+                    self.Flag.Zero = self.RegisterX == 0;
+                    self.Flag.Negative = self.RegisterX & 0b1000_0000 != 0
+                }
                 0x00 => {
                     return;
                 }
@@ -119,6 +124,30 @@ mod test {
         let mut cpu = CPU::new();
         cpu.interpret(vec![0xa9, 0xf1, 0x00]);
         assert!(cpu.Flag.Negative == true);
+    }
+    #[test]
+    fn test_0xaa_tax_move_a_to_x() {
+        let mut cpu = CPU::new();
+        cpu.RegisterA = 10;
+        cpu.interpret(vec![0xaa, 0x00]);
+
+        assert_eq!(cpu.RegisterX, 10)
+    }
+    #[test]
+    fn test_0xaa_tax_move_a_to_x_zero_flag() {
+        let mut cpu = CPU::new();
+        cpu.RegisterA = 0;
+        cpu.interpret(vec![0xaa, 0x00]);
+
+        assert_eq!(cpu.Flag.Zero, true)
+    }
+    #[test]
+    fn test_0xaa_tax_move_a_to_x_negative_flag() {
+        let mut cpu = CPU::new();
+        cpu.RegisterA = 0xf1;
+        cpu.interpret(vec![0xaa, 0x00]);
+
+        assert_eq!(cpu.Flag.Negative, true)
     }
 }
 fn main() {
