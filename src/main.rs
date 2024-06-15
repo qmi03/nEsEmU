@@ -83,6 +83,11 @@ impl CPU {
         self.Flag.Negative = result & 0b1000_0000 != 0
     }
 
+    fn inx(&mut self) {
+        self.RegisterX = self.RegisterX.wrapping_add(1);
+        self.update_zero_and_negative_flag(self.RegisterX)
+    }
+
     pub fn interpret(&mut self, program: Vec<u8>) {
         loop {
             let opcode = program[self.ProgramCounter as usize];
@@ -95,6 +100,7 @@ impl CPU {
                     self.lda(param);
                 }
                 0xAA => self.tax(),
+                0xE8 => self.inx(),
                 0x00 => return,
                 _ => todo!(),
             }
@@ -151,6 +157,22 @@ mod test {
         cpu.interpret(vec![0xaa, 0x00]);
 
         assert_eq!(cpu.Flag.Negative, true)
+    }
+    #[test]
+    fn test_5_ops_working_together() {
+        let mut cpu = CPU::new();
+        cpu.interpret(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
+
+        assert_eq!(cpu.RegisterX, 0xc1)
+    }
+
+    #[test]
+    fn test_inx_overflow() {
+        let mut cpu = CPU::new();
+        cpu.RegisterX = 0xff;
+        cpu.interpret(vec![0xe8, 0xe8, 0x00]);
+
+        assert_eq!(cpu.RegisterX, 1)
     }
 }
 fn main() {
