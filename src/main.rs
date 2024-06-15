@@ -93,6 +93,34 @@ impl CPU {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_0xa9_lda_immediate_load_data() {
+        let mut cpu = CPU::new();
+        cpu.interpret(vec![0xa9, 0x05, 0x00]);
+        assert_eq!(cpu.RegisterA, 0x05);
+        assert!(cpu.Flag.Zero == false);
+        assert!(cpu.Flag.Negative == false);
+    }
+
+    #[test]
+    fn test_0xa9_lda_zero_flag() {
+        let mut cpu = CPU::new();
+        cpu.interpret(vec![0xa9, 0x00, 0x00]);
+        assert!(cpu.Flag.Zero == true);
+    }
+
+    #[test]
+    fn test_0xa9_lda_negative_flag() {
+        let mut cpu = CPU::new();
+        cpu.interpret(vec![0xa9, 0xf1, 0x00]);
+        assert!(cpu.Flag.Negative == true);
+    }
+}
 fn main() {
     println!("Hello, world!");
 }
