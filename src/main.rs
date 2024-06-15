@@ -78,6 +78,32 @@ impl CPU {
     fn mem_write(&mut self, address: u16, data: u8) {
         self.Memory[address as usize] = data;
     }
+    pub fn load_and_run(&mut self, program: Vec<u8>) {
+        self.load(program);
+        self.run();
+    }
+    pub fn load(&mut self, program: Vec<u8>) {
+        self.Memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program[..]);
+        self.ProgramCounter = 0x8000;
+    }
+    pub fn run(&mut self) {
+        loop {
+            let opcode = self.mem_read(self.ProgramCounter);
+            self.ProgramCounter += 1;
+
+            match opcode {
+                0xA9 => {
+                    let param = self.mem_read(self.ProgramCounter);
+                    self.ProgramCounter += 1;
+                    self.lda(param);
+                }
+                0xAA => self.tax(),
+                0xE8 => self.inx(),
+                0x00 => return,
+                _ => todo!(),
+            }
+        }
+    }
     fn lda(&mut self, value: u8) {
         self.RegisterA = value;
         self.update_zero_and_negative_flag(self.RegisterA);
