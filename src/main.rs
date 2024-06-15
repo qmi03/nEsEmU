@@ -58,6 +58,7 @@ pub struct CPU {
     StackPointer: u8,
     ProgramCounter: u16,
     Flag: Flag,
+    Memory: [u8; 0xffff],
 }
 impl CPU {
     pub fn new() -> Self {
@@ -68,7 +69,14 @@ impl CPU {
             StackPointer: 0,
             ProgramCounter: 0,
             Flag: Flag::from(0),
+            Memory: [0; 0xffff],
         }
+    }
+    fn mem_read(&self, address: u16) -> u8 {
+        self.Memory[address as usize]
+    }
+    fn mem_write(&mut self, address: u16, data: u8) {
+        self.Memory[address as usize] = data;
     }
     fn lda(&mut self, value: u8) {
         self.RegisterA = value;
