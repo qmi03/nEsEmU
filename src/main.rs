@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
+use std::u8;
+
 const C_BYTE_POSITION: u8 = 0;
 const Z_BYTE_POSITION: u8 = 1;
 const I_BYTE_POSITION: u8 = 2;
@@ -77,6 +79,17 @@ impl CPU {
     }
     fn write_mem(&mut self, address: u16, data: u8) {
         self.Memory[address as usize] = data;
+    }
+    fn read_mem_16(&self, address: u16) -> u16 {
+        let lo = self.read_mem(address) as u16;
+        let hi = self.read_mem(address + 1) as u16;
+        ((hi << 8) | lo) as u16
+    }
+    fn write_mem_16(&mut self, address: u16, data: u16) {
+        let lo = (data >> 8) as u8;
+        let hi = (data & 0x00ff) as u8;
+        self.write_mem(address, lo);
+        self.write_mem(address + 1, hi);
     }
     pub fn load_and_run(&mut self, program: Vec<u8>) {
         self.load(program);
