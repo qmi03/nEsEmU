@@ -85,6 +85,9 @@ impl CPU {
                     self.Flag.Zero = self.RegisterA == 0;
                     self.Flag.Negative = self.RegisterA & 0b1000_0000 != 0
                 }
+                0x00 => {
+                    return;
+                }
                 _ => todo!(),
             }
         }
