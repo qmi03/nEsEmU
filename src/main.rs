@@ -130,6 +130,11 @@ impl CPU {
                     self.ProgramCounter += 1;
                     self.lda(param);
                 }
+                0xA2 => {
+                    let param = self.read_mem(self.ProgramCounter);
+                    self.ProgramCounter += 1;
+                    self.ldx(param);
+                }
                 0xAA => self.tax(),
                 0xE8 => self.inx(),
                 0x00 => return,
@@ -142,6 +147,7 @@ impl CPU {
         self.update_zero_and_negative_flag(self.RegisterA);
     }
     fn ldx(&mut self, value: u8) {
+        println!("WENT INTO LDX FUNCTION{}", value);
         self.RegisterX = value;
         self.update_zero_and_negative_flag(self.RegisterX);
     }
@@ -157,30 +163,6 @@ impl CPU {
     fn inx(&mut self) {
         self.RegisterX = self.RegisterX.wrapping_add(1);
         self.update_zero_and_negative_flag(self.RegisterX)
-    }
-
-    pub fn interpret(&mut self, program: Vec<u8>) {
-        loop {
-            let opcode = program[self.ProgramCounter as usize];
-            self.ProgramCounter += 1;
-
-            match opcode {
-                0xA9 => {
-                    let param = program[self.ProgramCounter as usize];
-                    self.ProgramCounter += 1;
-                    self.lda(param);
-                }
-                0xA2 => {
-                    let param = program[self.ProgramCounter as usize];
-                    self.ProgramCounter += 1;
-                    self.ldx(param);
-                }
-                0xAA => self.tax(),
-                0xE8 => self.inx(),
-                0x00 => return,
-                _ => todo!(),
-            }
-        }
     }
 }
 
@@ -201,6 +183,22 @@ mod test {
     fn test_0xa9_lda_zero_flag() {
         let mut cpu = CPU::new();
         cpu.load_and_run(vec![0xa9, 0x00, 0x00]);
+        assert!(cpu.Flag.Zero == true);
+    }
+
+    #[test]
+    fn test_0xa2_ldx_immediate_load_data() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa2, 0x05, 0x00]);
+        assert_eq!(cpu.RegisterX, 0x05);
+        assert!(cpu.Flag.Zero == false);
+        assert!(cpu.Flag.Negative == false);
+    }
+
+    #[test]
+    fn test_0xa2_ldx_zero_flag() {
+        let mut cpu = CPU::new();
+        cpu.load_and_run(vec![0xa2, 0x00, 0x00]);
         assert!(cpu.Flag.Zero == true);
     }
 
@@ -245,7 +243,7 @@ mod test {
     fn test_inx_overflow() {
         let mut cpu = CPU::new();
         cpu.RegisterX = 0xff;
-        cpu.load_and_run(vec![0xe8, 0xe8, 0x00]);
+        cpu.load_and_run(vec![0xa2, 0xff, 0xe8, 0xe8, 0x00]);
 
         assert_eq!(cpu.RegisterX, 1)
     }
