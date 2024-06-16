@@ -205,7 +205,7 @@ mod test {
     fn test_0xaa_tax_move_a_to_x() {
         let mut cpu = CPU::new();
         cpu.RegisterA = 10;
-        cpu.load_and_run(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xa9,10,0xaa, 0x00]);
 
         assert_eq!(cpu.RegisterX, 10)
     }
@@ -213,15 +213,14 @@ mod test {
     fn test_0xaa_tax_move_a_to_x_zero_flag() {
         let mut cpu = CPU::new();
         cpu.RegisterA = 0;
-        cpu.load_and_run(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xa9,0,0xaa, 0x00]);
 
         assert_eq!(cpu.Flag.Zero, true)
     }
     #[test]
     fn test_0xaa_tax_move_a_to_x_negative_flag() {
         let mut cpu = CPU::new();
-        cpu.RegisterA = 0xf1;
-        cpu.load_and_run(vec![0xaa, 0x00]);
+        cpu.load_and_run(vec![0xa9,0xf1,0xaa, 0x00]);
 
         assert_eq!(cpu.Flag.Negative, true)
     }
