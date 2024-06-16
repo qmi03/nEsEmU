@@ -99,19 +99,20 @@ impl CPU {
         self.Memory[address as usize] = data;
     }
     fn read_mem_16(&self, address: u16) -> u16 {
-        let lo = self.read_mem(address) as u16;
-        let hi = self.read_mem(address + 1) as u16;
-        ((hi << 8) | lo) as u16
+        let least_significant_byte = self.read_mem(address) as u16;
+        let most_significant_byte = self.read_mem(address + 1) as u16;
+        ((most_significant_byte << 8) | least_significant_byte) as u16
     }
     fn write_mem_16(&mut self, address: u16, data: u16) {
-        let lo = (data >> 8) as u8;
-        let hi = (data & 0x00ff) as u8;
-        self.write_mem(address, lo);
-        self.write_mem(address + 1, hi);
+        let least_significant_byte = (data & 0x00ff) as u8;
+        let most_significant_byte = (data >> 8) as u8;
+        self.write_mem(address, least_significant_byte);
+        self.write_mem(address + 1, most_significant_byte);
     }
     pub fn load_and_run(&mut self, program: Vec<u8>) {
         self.load(program);
         self.reset();
+
         self.run();
     }
     fn load(&mut self, program: Vec<u8>) {
